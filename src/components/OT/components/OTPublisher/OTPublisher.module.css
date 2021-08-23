@@ -1,0 +1,17 @@
+.main {
+  padding: 8px;
+  overflow: hidden;
+
+  display: flex;
+}
+
+.videoContainer {
+  overflow: hidden;
+  display: flex;
+}
+
+.videoContainer > video {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}

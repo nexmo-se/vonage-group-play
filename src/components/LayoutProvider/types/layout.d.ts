@@ -1,0 +1,1 @@
+export type LayoutType = "dominant" | "normal";

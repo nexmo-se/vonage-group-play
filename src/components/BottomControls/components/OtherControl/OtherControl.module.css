@@ -1,0 +1,28 @@
+.main {
+  min-width: 125px;
+  background-color: rgba(51, 51, 51, 1);
+  color: white;
+  padding: 8px 16px;
+}
+
+.main:hover {
+  background-color: rgba(255, 255, 255, .25);
+}
+
+.main:active {
+  background-color: rgba(181, 121, 255, 1) !important;
+}
+
+.main.selected {
+  color: rgba(181, 121, 255, 1) !important;
+}
+
+.main.disabled {
+  background-color: rgba(97, 98, 102, 1) !important;
+  color: rgba(155, 157, 163) !important;
+  cursor: not-allowed;
+}
+
+.main svg {
+  margin-right: 0px;
+}

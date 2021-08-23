@@ -1,0 +1,28 @@
+.main {
+  display: flex;
+  flex-shrink: 1;
+  background-color: rgba(26, 26, 26, 1);
+
+  padding: 4px 16px;
+}
+
+.left {
+  flex: 1;
+}
+
+.middle {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.middle > div {
+  margin-right: 16px;
+}
+
+.right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}

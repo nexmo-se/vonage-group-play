@@ -1,0 +1,24 @@
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.dominant {
+  flex-basis: 90%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.participants {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.participants.small {
+  flex-basis: 10%;
+  flex-direction: column;
+}
