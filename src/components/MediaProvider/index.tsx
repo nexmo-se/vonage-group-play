@@ -240,6 +240,7 @@ function MediaProvider ({ children }: MediaProviderProps) {
       setUserType(
         (prevUserType) => {
           if (!session) return prevUserType;
+          if (!mediaUrl) return prevUserType; // do not broadcast if don't have mediaUrl
 
           const signalBody = {
             url: mediaUrl,
@@ -294,6 +295,8 @@ function MediaProvider ({ children }: MediaProviderProps) {
         } else {
           setMediaUrl(undefined);
           setUserType("no-media");
+          setAcks([]);
+          setPlayer(undefined);
           console.log("Signal sent: ", signalType);
         }
       }

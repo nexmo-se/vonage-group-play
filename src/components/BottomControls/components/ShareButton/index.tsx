@@ -31,9 +31,11 @@ function ShareButton () {
     if (!tempUrl) return;
     setMediaUrl(tempUrl);
     setActive(true);
-    setTempUrl("");
+    // setTempUrl("");
     toggleModal();
   }
+
+  console.log(userType);
 
   return (
     <>    

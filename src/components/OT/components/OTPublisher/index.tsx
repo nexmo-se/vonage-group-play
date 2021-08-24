@@ -84,7 +84,7 @@ export const OTPublisher = forwardRef<RefProps, OTPublisherProps>(
 
           const previousValue = lodash(prevProperties.current).get(key, defaultValue);
           const currentValue = lodash(properties).get(key, defaultValue);
-          console.log("Should update", key, "is", previousValue !== currentValue)
+          // console.log("Should update", key, "is", previousValue !== currentValue)
           return previousValue !== currentValue;
         }
 
