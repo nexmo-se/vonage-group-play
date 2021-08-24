@@ -45,8 +45,20 @@ function VideoContainer () {
           })
         }
       >
-        <OTPublisher />
-        <OTSubscribers />
+        <OTPublisher
+          className={
+            clsx({
+              [styles.normal]: layout === "normal"
+            })
+          }
+        />
+        <OTSubscribers
+          className={
+            clsx({
+              [styles.normal]: layout === "normal"
+            })
+          }
+        />
       </section>
     </section>
   );

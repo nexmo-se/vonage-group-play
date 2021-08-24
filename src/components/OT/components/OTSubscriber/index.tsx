@@ -1,6 +1,7 @@
 import styles from "./OTSubscriber.module.css";
 
 import lodash from "lodash";
+import clsx from "clsx";
 import { OTError, Stream, Subscriber, SubscriberProperties } from "@opentok/client";
 import { v4 as uuid } from "uuid";
 
@@ -9,11 +10,12 @@ import { useSession } from "../../hooks/session";
 
 interface OTSubscriberProps {
   stream: Stream;
+  className?: string;
   properties?: SubscriberProperties;
   onError?: (err: OTError) => void;
 }
 
-export function OTSubscriber ({ onError, properties, stream }: OTSubscriberProps) {
+export function OTSubscriber ({ onError, properties, stream, className }: OTSubscriberProps) {
   const [, setSubscriber] = useState<Subscriber>();
   const [id] = useState<string>(uuid());
   const { session } = useSession();
@@ -61,7 +63,14 @@ export function OTSubscriber ({ onError, properties, stream }: OTSubscriberProps
   )
 
   return (
-    <div className={styles.main}>
+    <div
+      className={
+        clsx(
+          styles.main,
+          className
+        )
+      }
+    >
       <div
         id={`subscriber_${id}`}
         className={styles.videoContainer}

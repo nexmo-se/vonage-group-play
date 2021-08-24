@@ -2,6 +2,7 @@ import styles from "./OTPublisher.module.css";
 
 import OT from "@opentok/client";
 import lodash from "lodash";
+import clsx from "clsx";
 import { Publisher, OTError, PublisherProperties } from "@opentok/client";
 import { v4 as uuid } from "uuid";
 
@@ -9,11 +10,12 @@ import { useSession } from "components/OT";
 import { useCallback, useEffect, useState } from "react";
 
 interface OTPublisherProps {
+  className?: string;
   properties?: PublisherProperties;
   onError?: (err: OTError) => void;
 }
 
-export function OTPublisher ({ properties, onError }: OTPublisherProps) {
+export function OTPublisher ({ className, properties, onError }: OTPublisherProps) {
   const [publisher, setPublisher] = useState<Publisher>();
   const [published, setPublished] = useState<boolean>(false);
   const [id] = useState<string>(uuid());
@@ -79,7 +81,14 @@ export function OTPublisher ({ properties, onError }: OTPublisherProps) {
   )
   
   return (
-    <div className={styles.main}>
+    <div
+      className={
+        clsx(
+          styles.main,
+          className
+        )
+      }
+    >
       <div
         id={`publisher_${id}`}
         className={styles.videoContainer}

@@ -12,6 +12,10 @@
   overflow: hidden;
 }
 
+.normal {
+  flex: 1
+}
+
 .participants {
   display: flex;
   flex: 1;

@@ -2,7 +2,16 @@ import { useSession } from "../../hooks/session"
 
 import { OTSubscriber } from "../OTSubscriber";
 
-export function OTSubscribers () {
+interface OTSubscribersProps {
+  className?: string;
+}
+
+/**
+ * 
+ * @param param0 `{ className }` will be applied to all OTSubscriber component
+ * @returns 
+ */
+export function OTSubscribers ({ className }: OTSubscribersProps) {
   const { streams } = useSession();
 
   return (
@@ -13,6 +22,7 @@ export function OTSubscribers () {
             <OTSubscriber
               key={stream.streamId}
               stream={stream}
+              className={className}
             />
           )
         )
