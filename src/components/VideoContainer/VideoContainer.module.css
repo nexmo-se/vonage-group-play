@@ -16,6 +16,10 @@
   flex: 1
 }
 
+.alone {
+  width: 100%;
+}
+
 .participants {
   display: flex;
   flex: 1;

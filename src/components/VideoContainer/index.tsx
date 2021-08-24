@@ -55,7 +55,8 @@ function VideoContainer () {
           }}
           className={
             clsx({
-              [styles.normal]: layout === "normal" && connections.length > 1
+              [styles.normal]: layout === "normal" && connections.length > 1,
+              [styles.alone]: layout === "normal" && connections.length === 1
             })
           }
         />
