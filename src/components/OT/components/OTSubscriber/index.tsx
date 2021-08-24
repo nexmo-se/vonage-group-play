@@ -20,50 +20,42 @@ export function OTSubscriber ({ onError, properties, stream, className }: OTSubs
   const [id] = useState<string>(uuid());
   const { session } = useSession();
 
-  const handleVideoElementCreated = useCallback(
-    ({ element }: VideoElementCreatedEvent) => {
-      // Remove any existing element.
-      const container = document.getElementById(`subscriber_${id}`);
-      if (!container) return;
-      while (container.firstChild) {
-        if (container.lastChild) container.removeChild(container.lastChild);
-        else break;
-      }
-
-      container.append(element);
-    },
-    [id]
-  )
-
   useEffect(
     () => {
-      if (!session) return;
+      setSubscriber(
+        (prevSubscriber) => {
+          if (!session) return prevSubscriber;
+          if (prevSubscriber) return prevSubscriber;
 
-      const defaultProperties = { insertDefaultUI: false };
-      const combinedProps = lodash(defaultProperties).merge(properties).value();
-      const subscriber = session.subscribe(stream, undefined, combinedProps, (err) => {
-        if (err) {
-          if (onError) onError(err);
-          console.log(err);
-        } else {
-          setSubscriber(subscriber);
-          console.log("Subscriber initialised");
+          const defaultProperties = {
+            subscribeToAudio: true,
+            subscribeToVideo: true,
+            width: "100%",
+            height: "100%",
+            insertMode: "append",
+            showControls: false,
+            fitMode: "contain"
+          } as SubscriberProperties
+
+          const combinedProps = lodash(defaultProperties).merge(properties).value();
+          const subscriber = session.subscribe(stream, `subscriber_${id}`, combinedProps, (err) => {
+            if (err) {
+              if (onError) onError(err);
+              console.log(err);
+            } else {
+              console.log("Subscriber initialised");
+            }
+          });
+          return subscriber;
         }
-      });
-
-      subscriber.once("videoElementCreated", handleVideoElementCreated);
+      )
     },
-    [
-      session,
-      properties,
-      onError,
-      stream,
-      handleVideoElementCreated
-    ]
+    [session, properties, onError, stream, id]
   )
 
   return (
     <div
+      id={`subscriber_${id}`}
       className={
         clsx(
           styles.main,
@@ -71,10 +63,6 @@ export function OTSubscriber ({ onError, properties, stream, className }: OTSubs
         )
       }
     >
-      <div
-        id={`subscriber_${id}`}
-        className={styles.videoContainer}
-      />
     </div>
   )
 }

@@ -24,8 +24,8 @@ export const OTPublisher = forwardRef<RefProps, OTPublisherProps>(
     const properties = lodash(props).get("properties");
     const onError = lodash(props).get("onError");
 
+    const [, setPublished] = useState<boolean>(false);
     const [publisher, setPublisher] = useState<Publisher>();
-    const [published, setPublished] = useState<boolean>(false);
     const [id] = useState<string>(uuid());
     const { session } = useSession();
 
@@ -38,52 +38,38 @@ export const OTPublisher = forwardRef<RefProps, OTPublisherProps>(
       }),
       [publisher]
     )
-
-    const handleVideoElementCreated = useCallback(
-      ({ element }: VideoElementCreatedEvent) => {
-        // remove any existing element
-        const container = document.getElementById(`publisher_${id}`);
-        if (!container) return;
-        while (container.firstChild) {
-          if (container.lastChild) container.removeChild(container.lastChild);
-          else break;
-        }
-
-        container.append(element);
-      },
-      [id]
-    )
     
     useEffect(
       () => {
-        if (!session) return;
-        if (published) return; // do not re-publish
+        setPublisher(
+          (prevPublisher) => {
+            if (!session) return prevPublisher;
+            if (prevPublisher) return prevPublisher; // It means we already publish the publish;
 
-        const defaultProperties = {
-          insertDefaultUI: false,
-          publishAudio: true,
-          publishVideo: true
-        } as PublisherProperties
-        
-        const combinedProps = lodash(defaultProperties).merge(properties).value();
-        const publisher = OT.initPublisher(undefined, combinedProps, (err) => {
-          if (err) {
-            if (onError) onError(err);
-            console.log(err);
-          } else {
-            setPublisher(publisher);
-            console.log("Publisher initialised");
+            const defaultProperties = {
+              publishAudio: true,
+              publishVideo: true,
+              width: "100%",
+              height: "100%",
+              insertMode: "append",
+              showControls: false,
+              fitMode: "contain"
+            } as PublisherProperties;
+
+            const combinedProps = lodash(defaultProperties).merge(properties).value();
+            const publisher = OT.initPublisher(`publisher_${id}`, combinedProps, (err) => {
+              if (err) {
+                if (onError) onError(err);
+                console.log(err);
+              } else {
+                console.log("Publisher initialised");
+              }
+            });
+            return publisher;
           }
-        });
-
-        publisher.once("videoElementCreated", handleVideoElementCreated);
+        )
       },
-      [
-        session,
-        properties,
-        onError,
-        handleVideoElementCreated
-      ]
+      [session, properties, onError, id]
     );
 
     /**
@@ -132,24 +118,30 @@ export const OTPublisher = forwardRef<RefProps, OTPublisherProps>(
 
     useEffect(
       () => {
-        if (!publisher) return;
-        if (!session) return;
-        if (published) return;
+        console.log("Publishing");
+        setPublished(
+          (prevPublished) => {
+            if (!session) return false;
+            if (!publisher) return false;
+            if (prevPublished) return prevPublished;
 
-        session.publish(publisher, (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("Publisher published");
-            setPublished(true);
+            session.publish(publisher, (err) => {
+              if (err) {
+                console.log(err);
+              } else {
+                console.log("Publisher published");
+              }
+            });
+            return true;
           }
-        })
+        )
       },
-      [session, publisher, published]
+      [session, publisher]
     )
     
     return (
       <div
+        id={`publisher_${id}`}
         className={
           clsx(
             styles.main,
@@ -157,10 +149,6 @@ export const OTPublisher = forwardRef<RefProps, OTPublisherProps>(
           )
         }
       >
-        <div
-          id={`publisher_${id}`}
-          className={styles.videoContainer}
-        />
       </div>
     );
   }
