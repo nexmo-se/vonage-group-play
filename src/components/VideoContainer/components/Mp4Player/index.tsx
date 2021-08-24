@@ -1,3 +1,5 @@
+import lodash from "lodash";
+
 import { OTExternalVideo } from "components/OT";
 import { OTExternalVideoRef } from "components/OT/types/OTExternalVideo";
 
@@ -16,7 +18,8 @@ function Mp4Player () {
     broadcastUrl,
     broadcastPlay,
     broadcastPause,
-    broadcastVolumeChange
+    broadcastVolumeChange,
+    broadcastCurrentTime
   } = useMedia();
 
   /**
@@ -72,6 +75,23 @@ function Mp4Player () {
     })
   }
 
+  /**
+   * Will update the currentTime. However, only publisher can fire this event
+   * @returns 
+   */
+  function handleTimeUpdate () {
+    if (mediaState !== "ready") return;
+    if (userType !== "publisher") return;
+
+    const player = playerRef.current?.getVideoElement();
+    if (!player) return;
+
+    broadcastCurrentTime({
+      currentTime: player.currentTime,
+      isPlaying: !player.paused
+    })
+  }
+
   useEffect(
     () => {
       const player = playerRef.current?.getVideoElement()
@@ -91,7 +111,8 @@ function Mp4Player () {
         canPlay: handleCanPlay,
         play: handlePlay,
         pause: handlePause,
-        volumeChange: handleVolumeChange
+        volumeChange: handleVolumeChange,
+        timeUpdate: lodash.debounce(handleTimeUpdate, 250)
       }}
     />
   )

@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { OTError, Stream, Subscriber, SubscriberProperties } from "@opentok/client";
 import { v4 as uuid } from "uuid";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "../../hooks/session";
 
 interface OTSubscriberProps {

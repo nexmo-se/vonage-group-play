@@ -11,10 +11,14 @@
  */
 import lodash from "lodash";
 import { MediaContext } from "./contexts/media";
+import { Connection } from "@opentok/client";
+import { ConnectionCreatedEvent } from "components/OT/types/OTSession";
 import {
   BasicSignalCallbackOptions,
+  BroadcastCurrentTimeOptions,
   BroadcastPauseOptions,
   BroadcastPlayOptions,
+  BroadcastUrlOptions,
   BroadcastVolumeChangeOptions,
   MediaState,
   MediaUserType,
@@ -23,11 +27,12 @@ import {
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "components/OT";
-import { Connection } from "@opentok/client";
 
 interface MediaProviderProps {
   children: any;
 }
+
+const MAX_TIME_DIFFERENCE = 2000; // in millis (ms)
 
 function MediaProvider ({ children }: MediaProviderProps) {
   const [mediaUrl, setMediaUrl] = useState<string>();
@@ -116,6 +121,27 @@ function MediaProvider ({ children }: MediaProviderProps) {
   )
 
   /**
+   * We want to adjust the time if the gap is huge. You can define the gap
+   * in the MAX_TIME_DIFFERENCE variable
+   */
+  const handleBroadcastCurrentTime = useCallback(
+    ({ currentTime, isPlaying }) => {
+      if (userType !== "subscriber") return;
+      if (!player) return;
+
+      const difference = Math.abs(player.currentTime - currentTime);
+      if (difference >= (MAX_TIME_DIFFERENCE / 1000)) {
+        // adjust the time because of time difference
+        player.currentTime = currentTime;
+      }
+
+      // In this opportunity as well, I want to check if the subscriber video is playing
+      if (player.paused && isPlaying) player.play();
+    },
+    [userType, player]
+  )
+
+  /**
    * We only handle signal that is related to the media sharing. 
    * Furthermore, we will ignore the signal that is not for media sharing.
    */
@@ -124,12 +150,18 @@ function MediaProvider ({ children }: MediaProviderProps) {
       if (!event.type) return;
       const rawData = lodash(event).get("data");
       
+      const noLogs = ["signal:media-mp4-broadcast_volume_change", "signal:media-mp4-broadcast_current_time"]
       const ignoreSignal = isOwnConnection(event.from)
       if (ignoreSignal) {
-        console.log(`Ignored ${event.type} signal from ${event.from.connectionId}`);
+        if (!noLogs.includes(event.type)) {
+          console.log(`Ignored ${event.type} signal from ${event.from.connectionId}`);
+        }
         return;
       };
-      console.log(`Received ${event.type} signal from ${event.from.connectionId}`);
+
+      if (!noLogs.includes(event.type)) {
+        console.log(`Received ${event.type} signal from ${event.from.connectionId}`);
+      }
 
       const acceptedType = [
         "signal:media-mp4-broadcast_url",
@@ -137,6 +169,7 @@ function MediaProvider ({ children }: MediaProviderProps) {
         "signal:media-mp4-broadcast_play",
         "signal:media-mp4-broadcast_pause",
         "signal:media-mp4-broadcast_volume_change",
+        "signal:media-mp4-broadcast_current_time",
         "signal:media-mp4-ack_broadcast",
       ]
 
@@ -170,6 +203,12 @@ function MediaProvider ({ children }: MediaProviderProps) {
         setPublisher(undefined);
         setPlayer(undefined);
         setAcks([]);
+      } else if (event.type === "signal:media-mp4-broadcast_current_time" && rawData !== undefined) {
+        const data = JSON.parse(rawData);
+        handleBroadcastCurrentTime({
+          currentTime: data.currentTime,
+          isPlaying: data.isPlaying
+        });
       }
       
     },
@@ -178,7 +217,8 @@ function MediaProvider ({ children }: MediaProviderProps) {
       handleAckBroadcast,
       handleBroadcastPlay,
       handleBroadcastPause,
-      handleBroadcastVolumeChange
+      handleBroadcastVolumeChange,
+      handleBroadcastCurrentTime
     ]
   )
 
@@ -191,38 +231,52 @@ function MediaProvider ({ children }: MediaProviderProps) {
   }
 
   /**
-   * Publisher will broadcast the url to all subscribers
+   * Publisher will broadcast the url to all subscribers. Even if the userType is not no-media
+   * the broadcast will still happen.
    * @returns 
    */
-  function broadcastUrl () {
-    if (!session) return;
-    if (userType !== "no-media") return;
+  const broadcastUrl = useCallback(
+    (options?: BroadcastUrlOptions) => {
+      setUserType(
+        (prevUserType) => {
+          if (!session) return prevUserType;
 
-    const signalBody = {
-      url: mediaUrl,
-      type: "mp4"
-    }
+          const signalBody = {
+            url: mediaUrl,
+            type: "mp4",
+            currentTime: lodash(options).get("currentTime", 0)
+          }
 
-    const signalType = "media-mp4-broadcast_url"
-    session.signal(
-      {
-        type: signalType,
-        data: JSON.stringify(signalBody)
-      },
-      (err) => {
-        if (err) {
-          console.log("Signal not sent", err);
-          setUserType("no-media");
-        } else {
-          console.log("Signal sent: ", signalType);
-
-          // This is a case where the publisher is the only publisher
-          if (connections.length === 1) setMediaState("ready");
+          const signalType = "media-mp4-broadcast_url"
+          const signalOptions = lodash({
+            type: signalType,
+            data: JSON.stringify(signalBody),
+            to: lodash(options).get("to")
+          }).omitBy(lodash.isNil).value();
+    
+          try {
+            session.signal(
+              signalOptions,
+              (err) => {
+                if (err) throw err;
+                else {
+                  console.log("Signal sent: ", signalType);
+      
+                  // This is a case where the publisher is the only publisher
+                  if (connections.length === 1) setMediaState("ready");
+                }
+              }
+            );
+          } catch (err) {
+            console.log("Signal not sent", err);
+            return "no-media";
+          }
+          return "publisher";
         }
-      }
-    );
-    setUserType("publisher");
-  }
+      )
+    },
+    [connections.length, mediaUrl, session]
+  )
 
   /**
    * This function will broadcast to all subscribers for removing current video player.
@@ -307,6 +361,29 @@ function MediaProvider ({ children }: MediaProviderProps) {
   }
 
   /**
+   * Broadcasting the current time. This function is callable by publisher only
+   * @param param0 
+   */
+  function broadcastCurrentTime ({ currentTime, isPlaying }: BroadcastCurrentTimeOptions) {
+    if (!session) return;
+    if (userType !== "publisher") return;
+
+    const body = { currentTime, isPlaying };
+    const signalType = "media-mp4-broadcast_current_time";
+    session.signal(
+      {
+        type: signalType,
+        data: JSON.stringify(body)
+      },
+      (err) => {
+        if (err) {
+          console.log("Signal not sent", err);
+        }
+      }
+    )
+  }
+
+  /**
    * Subscriber will send the broadcast result to the publisher
    * @returns 
    */
@@ -332,6 +409,23 @@ function MediaProvider ({ children }: MediaProviderProps) {
     )
   }
 
+  /**
+   * When a new user coming in, we would like to let them know that we have a video
+   * ready to be streamed.
+   */
+  const handleConnectionChange = useCallback(
+    (event: ConnectionCreatedEvent) => {
+      if (userType !== "publisher") return;
+      if (!player) return;
+
+      broadcastUrl({
+        to: event.connection,
+        currentTime: player.currentTime
+      })
+    },
+    [userType, player, broadcastUrl]
+  )
+
   useEffect(
     () => {
       if (!session) return;
@@ -352,13 +446,44 @@ function MediaProvider ({ children }: MediaProviderProps) {
       const intersectionAcks = lodash(connections).intersectionBy(acks, "connectionId").value();
 
       const totalConnection = connections.length - 1; // minus 1 because we want to ignore our own connection
-      if (intersectionAcks.length === totalConnection && intersectionAcks.length !== 0) {
+      if (totalConnection === 0) {
+        // No one is here, just show the control
+        setMediaState("ready");
+      } else if (intersectionAcks.length === totalConnection && intersectionAcks.length !== 0) {
         setMediaState("ready");
       } else {
         setMediaState("unavailable");
       }
     },
     [acks, connections]
+  )
+
+  /**
+   * Whenever I have a new connections, I need to re-broadcast it.
+   * I don't care if they already have media, if they have, we just ignore it
+   */
+  useEffect(
+    () => {
+      lodash(connections).forEach(
+        (connection) => handleConnectionChange({ connection })
+      )
+    },
+    [connections, handleConnectionChange]
+  )
+
+  /**
+   * Whenever connection change, we need to readjust the acks list
+   */
+  useEffect(
+    () => {
+      setAcks(
+        (prevAcks) => {
+          const intersectionAcks = lodash(connections).intersectionBy(prevAcks, "connectionId").value();
+          return intersectionAcks;
+        }
+      )
+    },
+    [connections]
   )
 
   return (
@@ -374,7 +499,8 @@ function MediaProvider ({ children }: MediaProviderProps) {
         broadcastUnpublish,
         broadcastPlay,
         broadcastPause,
-        broadcastVolumeChange
+        broadcastVolumeChange,
+        broadcastCurrentTime
       }}
     >
       {children}

@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { createContext } from "react";
 import {
+  BroadcastCurrentTimeOptions,
   BroadcastPauseOptions,
   BroadcastPlayOptions,
   BroadcastVolumeChangeOptions,
@@ -20,6 +21,7 @@ interface MediaContextProps {
   broadcastPause: (args: BroadcastPauseOptions) => void;
   broadcastVolumeChange: (args: BroadcastVolumeChangeOptions) => void;
   broadcastUnpublish: () => void;
+  broadcastCurrentTime: (args: BroadcastCurrentTimeOptions) => void;
 }
 
 export const MediaContext = createContext<MediaContextProps>({

@@ -9,7 +9,7 @@ import { PublisherPropertiesKey, RefProps } from "../../types/OTPublisher";
 import { v4 as uuid } from "uuid";
 
 import { useSession } from "../../hooks/session";
-import { useImperativeHandle, useCallback, useEffect, useState } from "react";
+import { useImperativeHandle, useEffect, useState } from "react";
 import { useRef } from "react";
 
 interface OTPublisherProps {

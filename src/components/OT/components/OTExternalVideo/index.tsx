@@ -14,6 +14,7 @@ type EventHandlers = {
   play?: () => void;
   pause?: () => void;
   volumeChange?: () => void;
+  timeUpdate?: () => void;
 }
 
 interface OTExternalVideoProps {
@@ -51,11 +52,13 @@ export const OTExternalVideo = forwardRef<RefProps, OTExternalVideoProps>(
         const playHandler = lodash(eventHandlers).get("play", () => {});
         const pauseHandler = lodash(eventHandlers).get("pause", () => {});
         const volumeChangeHandler = lodash(eventHandlers).get("volumeChange", () => {});
+        const timeUpdate = lodash(eventHandlers).get("timeUpdate", () => {});
 
         videoElement.addEventListener("canplay", canPlayHandler);
         videoElement.addEventListener("play", playHandler);
         videoElement.addEventListener("pause", pauseHandler);
         videoElement.addEventListener("volumechange", volumeChangeHandler);
+        videoElement.addEventListener("timeupdate", timeUpdate);
 
         return function cleanup () {
           if (!videoElement) return;
@@ -63,6 +66,7 @@ export const OTExternalVideo = forwardRef<RefProps, OTExternalVideoProps>(
           videoElement.removeEventListener("play", playHandler);
           videoElement.removeEventListener("pause", pauseHandler);
           videoElement.removeEventListener("volumechange", volumeChangeHandler);
+          videoElement.removeEventListener("timeupdate", timeUpdate);
         }
       },
       [eventHandlers]
