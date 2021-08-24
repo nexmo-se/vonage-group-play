@@ -3,10 +3,11 @@
 import styles from "./OTExternalVideo.module.css";
 
 import lodash from "lodash";
+import { RefProps } from "../../types/OTExternalVideo";
 import { forwardRef } from "react";
 import { useState, useRef, useEffect, useImperativeHandle } from "react";
-import { RefProps } from "../../types/OTExternalVideo"
 import { v4 as uuid } from "uuid";
+
 
 type EventHandlers = {
   canPlay?: () => void;

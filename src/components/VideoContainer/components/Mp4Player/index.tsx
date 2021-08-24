@@ -1,12 +1,12 @@
 import { OTExternalVideo } from "components/OT";
-import { RefProps } from "components/OT/types/OTExternalVideo";
+import { OTExternalVideoRef } from "components/OT/types/OTExternalVideo";
 
 import { useMedia } from "components/MediaProvider";
 import { useRef } from "react";
 import { useEffect } from "react";
 
 function Mp4Player () {
-  const playerRef = useRef<RefProps>(null);
+  const playerRef = useRef<OTExternalVideoRef>(null);
   const {
     mediaState,
     mediaUrl,

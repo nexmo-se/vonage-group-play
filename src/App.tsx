@@ -5,6 +5,7 @@ import BottomControls from "components/BottomControls";
 import VideoContainer from "components/VideoContainer";
 import LayoutProvider from "components/LayoutProvider";
 import MediaProvider from "components/MediaProvider";
+import AudioVideoProvider from "components/AudioVideoProvider";
 import { OTSession } from "components/OT";
 
 function App() {
@@ -17,8 +18,10 @@ function App() {
       <MainPage>
         <LayoutProvider>
           <MediaProvider>
-            <VideoContainer />
-            <BottomControls />
+            <AudioVideoProvider>
+              <VideoContainer />
+              <BottomControls />
+            </AudioVideoProvider>
           </MediaProvider>
         </LayoutProvider>
       </MainPage>

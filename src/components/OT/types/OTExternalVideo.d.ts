@@ -1,3 +1,5 @@
-export type RefProps = {
+type RefProps = {
   getVideoElement: () => HTMLVideoElement | undefined;
 }
+
+export type OTExternalVideoRef = RefProps;

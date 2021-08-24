@@ -215,6 +215,9 @@ function MediaProvider ({ children }: MediaProviderProps) {
           setUserType("no-media");
         } else {
           console.log("Signal sent: ", signalType);
+
+          // This is a case where the publisher is the only publisher
+          if (connections.length === 1) setMediaState("ready");
         }
       }
     );
@@ -347,9 +350,6 @@ function MediaProvider ({ children }: MediaProviderProps) {
       // Whenever the acks and connections changes
       // change the mediaState
       const intersectionAcks = lodash(connections).intersectionBy(acks, "connectionId").value();
-      console.log("intrsectionAcks", intersectionAcks);
-      console.log("acks", acks);
-      console.log("connections", connections);
 
       const totalConnection = connections.length - 1; // minus 1 because we want to ignore our own connection
       if (intersectionAcks.length === totalConnection && intersectionAcks.length !== 0) {
