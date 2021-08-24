@@ -1,7 +1,7 @@
 import styles from "./BottomControls.module.css";
 
+import LeaveButton from "./components/LeaveButton";
 import MuteButton from "./components/MuteButton";
-import OtherControl from "./components/OtherControl";
 import ShareButton from "./components/ShareButton";
 import VideoButton from "./components/VideoButton";
 
@@ -16,11 +16,7 @@ function BottomControls () {
         <VideoButton />
       </div>
       <div className={styles.right}>
-        <OtherControl
-          iconName="Vlt-icon-phone-down-full"
-          iconColor="red"
-          title="Leave Meeting"
-        />
+        <LeaveButton />
       </div>
     </div>
   );
