@@ -56,14 +56,16 @@ function VideoContainer () {
           className={
             clsx({
               [styles.normal]: layout === "normal" && connections.length > 1,
-              [styles.alone]: layout === "normal" && connections.length === 1
+              [styles.alone]: layout === "normal" && connections.length === 1,
+              [styles.video]: layout === "dominant"
             })
           }
         />
         <OTSubscribers
           className={
             clsx({
-              [styles.normal]: layout === "normal"
+              [styles.normal]: layout === "normal",
+              [styles.video]: layout === "dominant"
             })
           }
         />
